@@ -1,0 +1,9 @@
+target/
+admin/node_modules/
+admin/dist/
+admin/pnpm-workspace.yaml
+uploads/
+.git/
+.idea/
+*.iml
+*.log

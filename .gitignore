@@ -1,0 +1,79 @@
+# 依赖
+node_modules/
+.pnp
+.pnp.*
+
+# 构建产物
+.next/
+out/
+build/
+!fly-backend/admin/build/
+fly-backend/admin/build/static/
+fly-backend/admin/build/index.html
+dist/
+fly-backend/target/
+
+# 环境变量
+.env
+.env.*
+!.env.example
+!.env.development
+!.env.production
+!.env.staging
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.pem
+
+# IDE & AI
+.idea/
+.vscode/
+.claude/
+CLAUDE.md
+*.swp
+*.swo
+
+# 日志
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.log
+
+# 数据库
+*.db
+*.sqlite
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
+
+# 上传文件
+uploads/
+
+# 压缩包
+*.zip
+
+# 其他
+.eslintcache
+report.html
+
+# Star 记录
+star-history.md
+
+# 阅读服务端
+reader-master/
+
+# 深度学习
+deep-learning/
+
+# Kova
+Kova/
+
+# 数据库备份 / 个人素材（不入库）
+db/
+头像图片/
+阿芙洛狄忒模型文件/

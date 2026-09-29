@@ -1,0 +1,53 @@
+server:
+  port: ${SERVER_PORT:8000}
+
+spring:
+  application:
+    name: fly-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/fly}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_DDL_AUTO:none}
+    open-in-view: false
+    properties:
+      hibernate:
+        auto_quote_keyword: true
+        jdbc:
+          time_zone: Asia/Shanghai
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    default-property-inclusion: always
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 110MB
+
+fly:
+  # JWT 签名密钥（必填，对应原 SECRET_KEY）
+  secret-key: ${FLY_SECRET_KEY:}
+  # JWT 有效期（小时）
+  token-expire-hours: 72
+  # CORS 允许来源（逗号分隔）。注意：必须包含线上域名（如 https://example.com），
+  # 浏览器同源 POST 也携带 Origin 头，缺失会导致所有 POST 返回 403 Invalid CORS request
+  cors-origins: ${FLY_CORS_ORIGINS:http://localhost:3000,http://localhost:5173,https://your-domain.com}
+  # 本地上传目录
+  uploads-dir: ${FLY_UPLOADS_DIR:uploads}
+  # 本地音乐目录（分号分隔；管理后台"扫描"导入，不复制文件）
+  # 注意：Docker 部署时由 compose 的 FLY_MUSIC_DIRS 覆盖为容器内路径
+  music-dirs: ${FLY_MUSIC_DIRS:D:\music\120迈神曲;D:\music\Mp3}
+  # 管理后台构建产物目录
+  admin-dist: ${FLY_ADMIN_DIST:admin/dist}
+  oss:
+    access-key-id: ${FLY_OSS_ACCESS_KEY_ID:}
+    access-key-secret: ${FLY_OSS_ACCESS_KEY_SECRET:}
+    bucket-name: ${FLY_OSS_BUCKET_NAME:}
+    endpoint: ${FLY_OSS_ENDPOINT:}
+    custom-domain: ${FLY_OSS_CUSTOM_DOMAIN:}
+    prefix: ${FLY_OSS_PREFIX:Boke/}
+
+logging:
+  level:
+    com.fly: INFO

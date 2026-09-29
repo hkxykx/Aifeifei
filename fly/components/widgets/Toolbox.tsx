@@ -1,0 +1,523 @@
+﻿"use client";
+
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from "react";
+import { motion, AnimatePresence, useDragControls } from "framer-motion";
+
+const CalendarApp = lazy(() => import("./toolbox/CalendarApp"));
+const CalculatorApp = lazy(() => import("./toolbox/CalculatorApp"));
+const PasswordGeneratorApp = lazy(() => import("./toolbox/PasswordGeneratorApp"));
+const UnitConverterApp = lazy(() => import("./toolbox/UnitConverterApp"));
+const BaseConverterApp = lazy(() => import("./toolbox/BaseConverterApp"));
+const WeatherApp = lazy(() => import("./toolbox/WeatherApp"));
+const RandomImageApp = lazy(() => import("./toolbox/RandomImageApp"));
+const BmiApp = lazy(() => import("./toolbox/BmiApp"));
+const GoldPriceApp = lazy(() => import("./toolbox/GoldPriceApp"));
+const HoroscopeApp = lazy(() => import("./toolbox/HoroscopeApp"));
+const WorldTimeApp = lazy(() => import("./toolbox/WorldTimeApp"));
+const PhoneInfoApp = lazy(() => import("./toolbox/PhoneInfoApp"));
+const TrackingApp = lazy(() => import("./toolbox/TrackingApp"));
+const MovieBoxOfficeApp = lazy(() => import("./toolbox/MovieBoxOfficeApp"));
+
+interface AppDef {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  component: React.LazyExoticComponent<React.ComponentType>;
+}
+
+const allApps: AppDef[] = [
+  // ── 热门资讯 ──
+  {
+    id: "weather",
+    name: "天气",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke="#0ea5e9" strokeWidth="1.5" />
+        <path d="M12 1v2M12 13v2M4.22 4.22l1.42 1.42M16.36 16.36l1.42 1.42M1 8h2M19 8h2M4.22 11.78l1.42-1.42M16.36 5.64l1.42-1.42" stroke="#0ea5e9" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M6 19a4 4 0 014-4h0a3 3 0 013-3 3 3 0 013 3h0a4 4 0 010 8H6z" stroke="#0ea5e9" strokeWidth="1.5" strokeLinejoin="round" />
+      </svg>
+    ),
+    component: WeatherApp,
+  },
+  {
+    id: "goldprice",
+    name: "今日金价",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="#f59e0b" strokeWidth="1.5" />
+        <text x="12" y="16" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#f59e0b">Au</text>
+      </svg>
+    ),
+    component: GoldPriceApp,
+  },
+  {
+    id: "movieboxoffice",
+    name: "实时票房",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="4" width="20" height="16" rx="2" stroke="#f59e0b" strokeWidth="1.5" />
+        <path d="M7 4v16M17 4v16M2 10h20M2 16h20" stroke="#f59e0b" strokeWidth="1" opacity="0.3" />
+        <path d="M10 8l2 3 2-3" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+    component: MovieBoxOfficeApp,
+  },
+
+  // ── 趣味测试 ──
+  {
+    id: "horoscope",
+    name: "星座运势",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="#8b5cf6" strokeWidth="1.5" />
+        <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" stroke="#8b5cf6" strokeWidth="1.5" strokeLinejoin="round" />
+        <circle cx="12" cy="12" r="2" fill="#8b5cf6" opacity="0.3" />
+      </svg>
+    ),
+    component: HoroscopeApp,
+  },
+  {
+    id: "bmi",
+    name: "BMI",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="#10b981" strokeWidth="1.5" />
+        <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="#10b981" strokeWidth="1.5" />
+        <path d="M12 6v4M10 8h4" stroke="#10b981" strokeWidth="1.5" />
+        <path d="M7 18l2-4M17 18l2-4" stroke="#10b981" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+    component: BmiApp,
+  },
+
+  // ── 图片壁纸 ──
+  {
+    id: "randomimage",
+    name: "随机图片",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="18" height="18" rx="3" stroke="#10b981" strokeWidth="1.5" />
+        <circle cx="8.5" cy="8.5" r="2" stroke="#10b981" strokeWidth="1.5" />
+        <path d="M3 16l5-5 4 4 3-3 6 6" stroke="#10b981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+    component: RandomImageApp,
+  },
+
+  // ── 实用工具 ──
+  {
+    id: "password",
+    name: "密码",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <rect x="5" y="11" width="14" height="10" rx="2" stroke="#10b981" strokeWidth="1.5" />
+        <path d="M8 11V7a4 4 0 118 0v4" stroke="#10b981" strokeWidth="1.5" />
+        <circle cx="12" cy="16" r="1.5" fill="#10b981" />
+        <path d="M12 17.5V19" stroke="#10b981" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+    component: PasswordGeneratorApp,
+  },
+  {
+    id: "converter",
+    name: "换算",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <path d="M17 4v16M7 20V4" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M21 8l-4-4-4 4M3 16l4 4 4-4" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M3 4h8M13 20h8" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+    component: UnitConverterApp,
+  },
+  {
+    id: "base",
+    name: "进制",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" stroke="#06b6d4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+    component: BaseConverterApp,
+  },
+  {
+    id: "calculator",
+    name: "计算器",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <rect x="4" y="2" width="16" height="20" rx="2" stroke="#f59e0b" strokeWidth="1.5" />
+        <rect x="7" y="5" width="10" height="4" rx="1" fill="#fbbf24" opacity="0.3" />
+        <circle cx="8" cy="13" r="1" fill="#f59e0b" />
+        <circle cx="12" cy="13" r="1" fill="#f59e0b" />
+        <circle cx="16" cy="13" r="1" fill="#f59e0b" />
+        <circle cx="8" cy="17" r="1" fill="#f59e0b" />
+        <circle cx="12" cy="17" r="1" fill="#f59e0b" />
+        <circle cx="16" cy="17" r="1" fill="#f59e0b" />
+      </svg>
+    ),
+    component: CalculatorApp,
+  },
+  {
+    id: "calendar",
+    name: "日历",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="4" width="18" height="18" rx="2" stroke="#6366f1" strokeWidth="1.5" />
+        <path d="M16 2v4M8 2v4M3 10h18" stroke="#6366f1" strokeWidth="1.5" />
+        <circle cx="8" cy="15" r="1" fill="#6366f1" />
+        <circle cx="12" cy="15" r="1" fill="#a78bfa" />
+        <circle cx="16" cy="15" r="1" fill="#6366f1" />
+      </svg>
+    ),
+    component: CalendarApp,
+  },
+  {
+    id: "tracking",
+    name: "快递查询",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="7" width="20" height="13" rx="2" stroke="#0ea5e9" strokeWidth="1.5" />
+        <path d="M16 7V5a4 4 0 00-8 0v2" stroke="#0ea5e9" strokeWidth="1.5" />
+        <path d="M12 11v4M10 13h4" stroke="#0ea5e9" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    ),
+    component: TrackingApp,
+  },
+  {
+    id: "phoneinfo",
+    name: "手机归属地",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <rect x="5" y="2" width="14" height="20" rx="3" stroke="#10b981" strokeWidth="1.5" />
+        <circle cx="12" cy="18" r="1" fill="#10b981" />
+        <path d="M9 6h6" stroke="#10b981" strokeWidth="1.5" />
+      </svg>
+    ),
+    component: PhoneInfoApp,
+  },
+  {
+    id: "worldtime",
+    name: "世界时间",
+    icon: (
+      <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="#0ea5e9" strokeWidth="1.5" />
+        <path d="M12 3c-3 4-3 8 0 9s3 5 0 9" stroke="#0ea5e9" strokeWidth="1.5" />
+        <path d="M3 12h18" stroke="#0ea5e9" strokeWidth="1.5" />
+        <path d="M4.5 7.5h15M4.5 16.5h15" stroke="#0ea5e9" strokeWidth="1" opacity="0.4" />
+      </svg>
+    ),
+    component: WorldTimeApp,
+  },
+];
+
+const APP_KEY = "toolbox-active-app";
+
+type ResizeDir = "top" | "bottom" | "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
+function ResizeHandle({
+  dir,
+  onResize,
+}: {
+  dir: ResizeDir;
+  onResize: (dw: number, dh: number) => void;
+}) {
+  const prevPos = useRef({ x: 0, y: 0 });
+
+  const cursorMap: Record<ResizeDir, string> = {
+    top: "cursor-ns-resize",
+    bottom: "cursor-ns-resize",
+    left: "cursor-ew-resize",
+    right: "cursor-ew-resize",
+    "top-left": "cursor-nwse-resize",
+    "bottom-right": "cursor-nwse-resize",
+    "top-right": "cursor-nesw-resize",
+    "bottom-left": "cursor-nesw-resize",
+  };
+
+  const posMap: Record<ResizeDir, string> = {
+    top: "top-0 left-2 right-2 h-2",
+    bottom: "bottom-2 left-2 right-2 h-2",
+    left: "top-2 bottom-2 left-0 w-2",
+    right: "top-2 bottom-2 right-0 w-2",
+    "top-left": "top-0 left-0 w-5 h-5",
+    "top-right": "top-0 right-0 w-5 h-5",
+    "bottom-left": "bottom-2 left-0 w-5 h-5",
+    "bottom-right": "bottom-2 right-0 w-5 h-5",
+  };
+
+  return (
+    <motion.div
+      drag
+      dragMomentum={false}
+      dragElastic={false}
+      dragSnapToOrigin
+      onDragStart={(_e, info) => {
+        prevPos.current = { x: info.point.x, y: info.point.y };
+      }}
+      onDrag={(_e, info) => {
+        const dx = info.point.x - prevPos.current.x;
+        const dy = info.point.y - prevPos.current.y;
+        prevPos.current = { x: info.point.x, y: info.point.y };
+        let dw = 0, dh = 0;
+        if (dir.includes("right")) dw = dx;
+        if (dir.includes("left")) dw = -dx;
+        if (dir.includes("bottom")) dh = dy;
+        if (dir.includes("top")) dh = -dy;
+        onResize(dw, dh);
+      }}
+      className={`absolute z-40 ${posMap[dir]} ${cursorMap[dir]}`}
+    />
+  );
+}
+
+export default function Toolbox() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeApp, setActiveApp] = useState<string | null>(null);
+  const btnRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const didDrag = useRef(false);
+  const [flipX, setFlipX] = useState(false);
+  const [flipY, setFlipY] = useState(false);
+  const [btnRect, setBtnRect] = useState<{ left: number; top: number } | null>(null);
+  const [panelOffset, setPanelOffset] = useState({ x: 0, y: 0 });
+  const [resizeOffset, setResizeOffset] = useState({ x: 0, y: 0 });
+  const [panelW, setPanelW] = useState(288);
+  const [panelH, setPanelH] = useState(560);
+  const panelDidDrag = useRef(false);
+  const panelDragControls = useDragControls();
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
+  useEffect(() => {
+    if (activeApp) {
+      localStorage.setItem(APP_KEY, activeApp);
+    }
+  }, [activeApp]);
+
+  const updateBtnRect = useCallback(() => {
+    if (!btnRef.current) return;
+    const r = btnRef.current.getBoundingClientRect();
+    setBtnRect({ left: r.left, top: r.top });
+    setFlipX(r.left + panelW > window.innerWidth);
+    setFlipY(r.top - 64 - panelH < 0);
+  }, [panelW, panelH]);
+
+  useEffect(() => {
+    if (isOpen) updateBtnRect();
+  }, [isOpen, updateBtnRect]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onResize = () => updateBtnRect();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [isOpen, updateBtnRect]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        panelRef.current && !panelRef.current.contains(e.target as Node) &&
+        btnRef.current && !btnRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+        setActiveApp(null);
+      }
+    };
+    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  useEffect(() => {
+    const handleClose = () => { setIsOpen(false); setActiveApp(null); };
+    window.addEventListener("close-toolbox", handleClose);
+    return () => window.removeEventListener("close-toolbox", handleClose);
+  }, []);
+
+  const currentApp = allApps.find((a) => a.id === activeApp);
+
+  const panelStyle: React.CSSProperties = btnRect
+    ? isMobile
+      ? { position: "fixed", left: "8%", right: "8%", top: "10%", bottom: "10%" }
+      : flipX
+        ? { position: "fixed", right: window.innerWidth - btnRect.left - 48 - resizeOffset.x, ...(flipY ? { top: btnRect.top + 48 + 8 + resizeOffset.y } : { bottom: window.innerHeight - btnRect.top + 16 - resizeOffset.y }) }
+        : { position: "fixed", left: btnRect.left + resizeOffset.x, ...(flipY ? { top: btnRect.top + 48 + 8 + resizeOffset.y } : { bottom: window.innerHeight - btnRect.top + 16 - resizeOffset.y }) }
+    : {};
+
+  return (
+    <>
+      {/* Panel */}
+      <AnimatePresence>
+        {isOpen && btnRect && (
+          <motion.div
+            drag={!isMobile}
+            dragControls={panelDragControls}
+            dragListener={false}
+            dragMomentum={false}
+            dragElastic={false}
+            onDragStart={() => { panelDidDrag.current = true; }}
+            onDragEnd={(_e, info) => {
+              setTimeout(() => { panelDidDrag.current = false; }, 100);
+              setPanelOffset((prev) => ({ x: prev.x + info.offset.x, y: prev.y + info.offset.y }));
+            }}
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            style={{ ...panelStyle, zIndex: 30, x: isMobile ? 0 : panelOffset.x, y: isMobile ? 0 : panelOffset.y, ...(isMobile ? {} : { width: panelW, height: panelH }) }}
+            className="rounded-3xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col"
+            ref={panelRef}
+          >
+            {/* 顶部拖拽把手 */}
+            <div
+              onPointerDown={isMobile ? undefined : (e) => panelDragControls.start(e)}
+              className="flex items-center justify-between px-5 pt-3 pb-1 shrink-0 cursor-grab active:cursor-grabbing"
+            >
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                {new Date().getHours().toString().padStart(2, "0")}:{new Date().getMinutes().toString().padStart(2, "0")}
+              </span>
+              <div className="flex gap-1">
+                <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+                <div className="w-1 h-1 rounded-full bg-slate-400 dark:bg-slate-500" />
+              </div>
+            </div>
+
+            {activeApp && currentApp ? (
+              <div className="flex flex-col flex-1 overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => { setActiveApp(null); localStorage.removeItem(APP_KEY); }}
+                    title="返回"
+                    className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <span className="text-sm font-bold text-slate-900 dark:text-white">{currentApp.name}</span>
+                </div>
+                <div className="p-4 flex-1 overflow-auto">
+                  <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-slate-400 animate-pulse">加载中...</div>}>
+                    <currentApp.component />
+                  </Suspense>
+                </div>
+              </div>
+            ) : (
+              <div className="px-6 pt-5 pb-10 flex-1 overflow-y-auto overflow-x-hidden">
+                <div className="grid grid-cols-2 gap-5 md:gap-4">
+                  {allApps.map((app) => (
+                    <button
+                      key={app.id}
+                      type="button"
+                      onClick={() => setActiveApp(app.id)}
+                      className="flex flex-col items-center gap-1.5 py-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200 active:scale-95 w-full"
+                    >
+                      {app.icon}
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{app.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 底部指示条 */}
+            <div className="flex justify-center py-2 shrink-0">
+              <div className="w-24 h-1 rounded-full bg-slate-200 dark:bg-slate-700" />
+            </div>
+
+            {/* 缩放把手 */}
+            {!isMobile && (
+              <>
+                <ResizeHandle
+                  dir="bottom-right"
+                  onResize={(dw, dh) => {
+                    setPanelW((w) => Math.min(Math.max(w + dw, 200), window.innerWidth - 32));
+                    setPanelH((h) => Math.min(Math.max(h + dh, 300), window.innerHeight - 32));
+                  }}
+                />
+                <ResizeHandle
+                  dir="top-left"
+                  onResize={(dw, dh) => {
+                    const newW = Math.min(Math.max(panelW + dw, 200), window.innerWidth - 32);
+                    const newH = Math.min(Math.max(panelH + dh, 300), window.innerHeight - 32);
+                    const actualDw = newW - panelW;
+                    const actualDh = newH - panelH;
+                    setPanelW(newW);
+                    setPanelH(newH);
+                    setResizeOffset((p) => ({ x: p.x - actualDw, y: p.y - actualDh }));
+                  }}
+                />
+                <ResizeHandle
+                  dir="top-right"
+                  onResize={(_dw, dh) => {
+                    const newH = Math.min(Math.max(panelH + dh, 300), window.innerHeight - 32);
+                    const actualDh = newH - panelH;
+                    setPanelH(newH);
+                    setResizeOffset((p) => ({ x: p.x, y: p.y - actualDh }));
+                  }}
+                />
+                <ResizeHandle
+                  dir="bottom-left"
+                  onResize={(dw, _dh) => {
+                    const newW = Math.min(Math.max(panelW + dw, 200), window.innerWidth - 32);
+                    const actualDw = newW - panelW;
+                    setPanelW(newW);
+                    setResizeOffset((p) => ({ x: p.x - actualDw, y: p.y }));
+                  }}
+                />
+              </>
+            )}
+
+            {/* 缩放角标 */}
+            <div className="absolute bottom-1.5 right-1.5 pointer-events-none opacity-30">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M12 2L2 12M12 7L7 12M12 12L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-slate-400 dark:text-slate-500" />
+              </svg>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 悬浮按钮 */}
+      <motion.div
+        drag
+        dragMomentum={false}
+        dragElastic={false}
+        onDragStart={() => { didDrag.current = true; }}
+        onDrag={() => { if (isOpen) updateBtnRect(); }}
+        onDragEnd={() => {
+          setTimeout(() => { didDrag.current = false; }, 100);
+          if (isOpen) updateBtnRect();
+        }}
+        className="fixed bottom-6 left-6 z-30"
+        ref={btnRef}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            if (didDrag.current) return;
+            if (isOpen) {
+              setIsOpen(false);
+              setActiveApp(null);
+            } else {
+              setPanelOffset({ x: 0, y: 0 });
+              setResizeOffset({ x: 0, y: 0 });
+              setPanelW(288);
+              setPanelH(560);
+              const saved = localStorage.getItem(APP_KEY);
+              if (saved && allApps.some((a) => a.id === saved)) setActiveApp(saved);
+              setIsOpen(true);
+            }
+          }}
+          title="工具箱"
+          className="w-12 h-12 rounded-2xl bg-white/40 dark:bg-slate-800/50 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-xl flex items-center justify-center hover:shadow-2xl transition-all text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-700/60 active:scale-95"
+          style={{ touchAction: "none" }}
+        >
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+        </button>
+      </motion.div>
+    </>
+  );
+}
