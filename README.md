@@ -125,4 +125,4 @@ docs/           三份部署文档 + README 截图
 
 ## License
 
-[MIT](LICENSE) © 2026 孤鸿
+[MIT](LICENSE) · 原作 © 2024 孤鸿 · 二次开发 © 2026 Aifeifei
